@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "askgemini",
+	"version": "${version}",
+	"name": "AskGemini",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/askgemini/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"br.com.lucasxa.askgemini.AskGemini"
+		],
+		"client": [
+			"br.com.lucasxa.askgemini.AskGeminiClient"
+		]
+	},
+	"mixins": [
+		"askgemini.mixins.json",
+		{
+			"config": "askgemini.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

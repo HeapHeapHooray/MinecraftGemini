@@ -3,15 +3,15 @@
 	"id": "askgemini",
 	"version": "${version}",
 	"name": "AskGemini",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A Minecraft mod that integrates Google Gemini AI directly into the in-game chat.",
 	"authors": [
-		"Me!"
+		"Lucas-X-A"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod",
+		"sources": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod"
 	},
-	"license": "CC0-1.0",
+	"license": "GPL-3.0-only",
 	"icon": "assets/askgemini/icon.png",
 	"environment": "*",
 	"entrypoints": {

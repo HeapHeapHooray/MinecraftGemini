@@ -26,7 +26,8 @@ public class GeminiIntegration {
         JsonArray parts = new JsonArray();
         JsonObject textObj = new JsonObject();
 
-        textObj.addProperty("text", question);
+        String systemInstruction = " (Answer in plain text. Keep it short and concise for in-game chat. No complex markdown. Give the answer in the language of the initial part of the prompt.)";
+        textObj.addProperty("text", question + systemInstruction);
         parts.add(textObj);
         partObj.add("parts", parts);
         contents.add(partObj);
@@ -42,10 +43,31 @@ public class GeminiIntegration {
         // Send Asynchronously
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(response -> {
-                    if (response.statusCode() == 200) {
+                    int status = response.statusCode();
+
+                    // SUCCESS (200 OK)
+                    if (status == 200) {
                         return extractTextFromJson(response.body());
-                    } else {
-                        return "API Error: " + response.statusCode();
+                    }
+
+                    // ERROR 400: Bad Request (Likely invalid API Key)
+                    else if (status == 400) {
+                        return "Invalid API Key. Please check your config using /gemini config";
+                    }
+
+                    // ERROR 429: Too Many Requests (Spamming or Quota exceeded)
+                    else if (status == 429) {
+                        return "Too many requests! Please wait a moment before asking again.";
+                    }
+
+                    // ERROR 500+: Google Server Issues
+                    else if (status >= 500) {
+                        return "Google Gemini is currently unavailable. Try again later.";
+                    }
+
+                    // Generic Error
+                    else {
+                        return "API Error (" + status + "): " + response.body();
                     }
                 })
                 .exceptionally(e -> "Connection Error: " + e.getMessage());
@@ -55,14 +77,47 @@ public class GeminiIntegration {
     private static String extractTextFromJson(String jsonResponse) {
         try {
             JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
-            return json.getAsJsonArray("candidates")
+            String rawText = json.getAsJsonArray("candidates")
                     .get(0).getAsJsonObject()
                     .getAsJsonObject("content")
                     .getAsJsonArray("parts")
                     .get(0).getAsJsonObject()
                     .get("text").getAsString();
+            return convertMarkdownToMinecraft(rawText);
         } catch (Exception e) {
-            return "Error reading AI response.";
+            return "Error parsing AI response.";
         }
+    }
+
+    /**
+     * Converts basic Markdown syntax to Minecraft Legacy Formatting Codes.
+     * **Bold** -> §lBold§r
+     * *Italic* -> §oItalic§r
+     * `Code`   -> §7Code§r (Gray)
+     */
+    private static String convertMarkdownToMinecraft(String text) {
+        if (text == null || text.isEmpty()) return text;
+
+        // Headers (### Title) -> Bold & Underline
+        text = text.replaceAll("(?m)^#{1,6}\\s+(.*)", "§n§l$1§r");
+
+        // Bold (**text**) -> §l (Bold)
+        text = text.replaceAll("\\*\\*(.*?)\\*\\*", "§l$1§r");
+
+        // Italic (*text*) -> §o (Italic)
+        text = text.replaceAll("\\*(.*?)\\*", "§o$1§r");
+
+        // Inline Code (`text`) -> §7 (Gray) for code look
+        text = text.replaceAll("`(.*?)`", "§7$1§r");
+
+        // Code Blocks (```) -> Remove the triple backticks (clean up)
+        text = text.replace("```java", "")
+                .replace("```json", "")
+                .replace("```", "");
+
+        // List Items (- item) -> Use a bullet point
+        text = text.replaceAll("(?m)^\\s*-\\s+", "• ");
+
+        return text.trim();
     }
 }

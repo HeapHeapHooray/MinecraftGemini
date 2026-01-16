@@ -19,6 +19,8 @@ jobs:
         with:
           java-version: '21'
           distribution: 'microsoft'
+      - name: setup gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
@@ -26,5 +28,7 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
+          name: AskGemini-Build-${{ github.sha }}
           path: build/libs/
+          retention-days: 5
+          if-no-files-found: error

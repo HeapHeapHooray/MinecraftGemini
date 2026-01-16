@@ -9,7 +9,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Base64;
 
 public class ConfigManager {
 
@@ -29,7 +31,17 @@ public class ConfigManager {
         try (FileReader reader = new FileReader(CONFIG_FILE)) {
             JsonObject json = GSON.fromJson(reader, JsonObject.class);
             if (json != null && json.has("apiKey")) {
-                apiKey = json.get("apiKey").getAsString();
+                String encodedKey = json.get("apiKey").getAsString();
+                // Try to decode (Base64 -> Normal Text)
+                try {
+                    byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
+                    apiKey = new String(decodedBytes, StandardCharsets.UTF_8);
+                } catch (IllegalArgumentException e) {
+                    // If fails,
+                    // It assumes it's plain text so as not to break it.
+                    System.err.println("[AskGemini] Config warning: Key might not be encoded. Fixing on next save.");
+                    apiKey = encodedKey;
+                }
             }
         } catch (IOException e) {
             System.err.println("[AskGemini] Failed to load config: " + e.getMessage());
@@ -40,7 +52,15 @@ public class ConfigManager {
     public static void save() {
         try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
             JsonObject json = new JsonObject();
-            json.addProperty("apiKey", apiKey);
+
+            // Encode key before saving (Normal Text -> Base64)
+            if (apiKey != null && !apiKey.isEmpty()) {
+                String encodedKey = Base64.getEncoder().encodeToString(apiKey.getBytes(StandardCharsets.UTF_8));
+                json.addProperty("apiKey", encodedKey);
+            } else {
+                json.addProperty("apiKey", "");
+            }
+
             GSON.toJson(json, writer);
         } catch (IOException e) {
             System.err.println("[AskGemini] Failed to save config: " + e.getMessage());
@@ -58,6 +78,6 @@ public class ConfigManager {
     }
 
     public static boolean hasKey() {
-        return apiKey != null && !apiKey.isEmpty() && !apiKey.isBlank();
+        return apiKey != null && !apiKey.isBlank();
     }
 }

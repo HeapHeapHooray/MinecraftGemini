@@ -3,15 +3,22 @@
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Fabric](https://img.shields.io/badge/Loader-Fabric-box)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
+![Version](https://img.shields.io/badge/Minecraft-1.21.x-brightgreen)
 
-**AskGemini** is a Minecraft Fabric mod that integrates Google's Gemini AI directly into the in-game chat. It allows players to ask questions, get building tips, or just chat with the AI without ever leaving the game world.
+**AskGemini** is a client-side Minecraft Fabric mod that integrates Google's Gemini AI directly into your in-game chat.
+
+It allows players to ask questions, get crafting recipes, building tips, or just chat with the AI without ever leaving the game world. The mod is designed to be lightweight, fast, and unobtrusive.
+
+---
 
 ## 🚀 Features
 
-* **In-Game AI Chat:** Intercepts chat messages starting with specific prefixes to communicate with Gemini.
-* **Seamless Integration:** Use `@Gemini <your question>` to talk to the AI.
-* **Asynchronous Processing:** Queries are processed in a separate thread to ensure the game **never freezes** or lags while waiting for a response.
-* **Secure Configuration:** Supports custom API Keys via in-game commands.
+* **🧠 In-Game AI Chat:** Seamlessly talk to Google Gemini 1.5 Flash directly from the chat HUD.
+* **⚡ Zero Lag:** All requests are processed asynchronously. The game **never freezes** while waiting for a response.
+* **🎨 Rich Text Support:** Automatically converts Markdown (Bold, Italic, Code Blocks) from the AI into Minecraft's legacy color formatting.
+* **🔒 Secure & Private:**  API Keys are stored locally using Base64 encoding.
+    * Chat messages starting with `@Gemini` are **client-side only** (they are never sent to the multiplayer server, preserving privacy).
+* **🌈 Visual Feedback:** Dynamic color coding for success and errors.
 
 ## 🛠️ Installation (For Players)
 
@@ -21,10 +28,11 @@
     * Download the [Fabric API](https://modrinth.com/mod/fabric-api) mod (required).
 
 2.  **Download AskGemini:**
-    * Download the latest `.jar` file from the [Releases](link-to-your-releases-page) tab.
+    * Download the latest `.jar` file from the [Releases](../../releases) tab.
 
 3.  **Install:**
     * Place the `.jar` file into your Minecraft `mods` folder.
+    * Launch the game!
 
 ## 🔑 Configuration (API Key)
 
@@ -37,18 +45,54 @@ To use the mod, you need a free Google Gemini API Key.
     /gemini config <YOUR_API_KEY_HERE>
     ```
     *Example: `/gemini config AIzaSyD...`*
-4.  The key will be saved locally. You are now ready to chat!
+4.  The key will be saved locally in `config/askgemini.json`.
 
 ## 🎮 Usage
 
-Simply open the chat and type:
+Simply open the chat and type `@Gemini` followed by your prompt:
 
+**General Questions:**
 ```text
 @Gemini How do I build a redstone clock?
 ```
-Or
+**Creative Writing:**
 ```text
 @Gemini Tell me a story about a creeper who is afraid of exploding.
 ```
+**Coding Helper:**
+```text
+@Gemini How does the /fill command work?
+```
 The AI response will appear in your local chat (visible only to you).
+
+## 💻 Building from Source (For Developers)
+
+If you want to contribute or modify the mod, follow these steps:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/YourUsername/AskGemini.git](https://github.com/YourUsername/AskGemini.git)
+    cd AskGemini
+    ```
+
+2.  **Build the project:**
+    * **Linux/macOS:**
+        ```bash
+        ./gradlew build
+        ```
+    * **Windows:**
+        ```powershell
+        .\gradlew build
+        ```
+
+3.  **Locate the artifact:**
+    The compiled `.jar` file will be located in `build/libs/`.
+
+## 📜 License
+
+This project is licensed under the **GPLv3 License**.
+
+---
+
+*Note: This mod is not affiliated with Mojang Studios or Google.*
 

@@ -26,7 +26,7 @@ public class GeminiIntegration {
         JsonArray parts = new JsonArray();
         JsonObject textObj = new JsonObject();
 
-        String systemInstruction = " (Answer in plain text. Keep it short and concise for in-game chat. No complex markdown. Give the answer in the language of the initial part of the prompt.)";
+        String systemInstruction = " (Don't give a much long answer. Give the answer in the language of the initial part of the prompt.)";
         textObj.addProperty("text", question + systemInstruction);
         parts.add(textObj);
         partObj.add("parts", parts);

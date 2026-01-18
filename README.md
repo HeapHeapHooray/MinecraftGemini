@@ -13,7 +13,7 @@ It allows players to ask questions, get crafting recipes, building tips, or just
 
 ## 🚀 Features
 
-* **🧠 In-Game AI Chat:** Seamlessly talk to Google Gemini 1.5 Flash directly from the chat HUD.
+* **🧠 In-Game AI Chat:** Seamlessly talk to Google Gemini 2.5 Flash directly from the chat HUD.
 * **⚡ Zero Lag:** All requests are processed asynchronously. The game **never freezes** while waiting for a response.
 * **🎨 Rich Text Support:** Automatically converts Markdown (Bold, Italic, Code Blocks) from the AI into Minecraft's legacy color formatting.
 * **🔒 Secure & Private:**  API Keys are stored locally using Base64 encoding.

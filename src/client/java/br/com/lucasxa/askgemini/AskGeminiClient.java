@@ -37,7 +37,7 @@ public class AskGeminiClient implements ClientModInitializer {
 
 		// Register Chat Listener
 		ClientSendMessageEvents.ALLOW_CHAT.register((message) -> {
-			if (message.startsWith("@Gemini ")) {
+			if (message.startsWith("@Gemini ") || message.startsWith("@gemini ") || message.startsWith("@GEMINI ")) {
 				MinecraftClient client = MinecraftClient.getInstance();
 
 				// Check if API Key exists

@@ -16,21 +16,46 @@ public class AskGeminiClient implements ClientModInitializer {
 		ConfigManager.load();
 		System.out.println("[AskGemini] Config loaded.");
 
-		// Register Command: /gemini config <API_KEY>
+		// Register Commands
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
 			dispatcher.register(ClientCommandManager.literal("gemini")
+
+					// Subcommand: /gemini config <API_KEY>
 					.then(ClientCommandManager.literal("config")
 							.then(ClientCommandManager.argument("key", StringArgumentType.greedyString())
 									.executes(context -> {
 										String newKey = StringArgumentType.getString(context, "key");
-										// Save safely to file
+										// Save API Key to file
 										ConfigManager.setApiKey(newKey);
-										// Feedback to user
+										// User Feedback
 										context.getSource().sendFeedback(
 												Text.of("§a[AskGemini] API Key saved successfully!"));
 										return 1;
 									})
 							)
+					)
+
+					// Subcommand: /gemini clear (Reset Conversation Context)
+					.then(ClientCommandManager.literal("clear")
+							.executes(context -> {
+								GeminiIntegration.clearHistory();
+								context.getSource().sendFeedback(
+										Text.of("§a[AskGemini] Conversation history cleared! Context reset."));
+								return 1;
+							})
+					)
+
+					// Subcommand: /gemini help (Show Command List)
+					.then(ClientCommandManager.literal("help")
+							.executes(context -> {
+								var source = context.getSource();
+								source.sendFeedback(Text.of("§b§l--- AskGemini Help ---"));
+								source.sendFeedback(Text.of("§e/gemini config <key> §7- Set your Google AI API Key."));
+								source.sendFeedback(Text.of("§e/gemini clear §7- Delete conversation history (fix hallucinations)."));
+								source.sendFeedback(Text.of("§e/gemini help §7- Show this command list."));
+								source.sendFeedback(Text.of("§bUsage: §fSimply type §e@Gemini <question> §fin chat."));
+								return 1;
+							})
 					)
 			);
 		});
@@ -59,22 +84,24 @@ public class AskGeminiClient implements ClientModInitializer {
 
 				String question = message.substring(8);
 
-				// Visual Feedback
+				// Visual "Thinking..." feedback
                 if (client.player != null) {
                     client.player.sendMessage(Text.of("§7§o[Gemini] Thinking..."), false);
                 }
 
-                // Call API using the Saved Key
+                // Call API using the saved Key
 				GeminiIntegration.askGemini(question, ConfigManager.getApiKey())
 						.thenAccept(response -> {
 							// Asynchronous task
 							client.execute(() -> {
+								if (client.player == null) return;
+
 								String prefixColor = "§b"; // Blue
 								String textColor = "§f"; // White
 
 								if (response.startsWith("Invalid API Key") ||
 									response.startsWith("Too many requests") ||
-									response.startsWith("Google Gemini is currently unavailable") ||
+									response.startsWith("Gemini unavailable") ||
 									response.startsWith("API Error") ||
 									response.startsWith("Connection Error")) {
 
@@ -87,10 +114,9 @@ public class AskGeminiClient implements ClientModInitializer {
 								);
 							});
 						});
-
-				return false;
+				return false; // Prevent the message from being sent to the multiplayer server
 			}
-			return true;
+			return true; // Allow normal chat messages
 		});
 	}
 }

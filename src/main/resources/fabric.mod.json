@@ -5,11 +5,13 @@
 	"name": "AskGemini",
 	"description": "A Minecraft mod that integrates Google Gemini AI directly into the in-game chat.",
 	"authors": [
-		"Lucas-X-A"
+		"Luks_X_A"
 	],
 	"contact": {
 		"homepage": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod",
-		"sources": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod"
+		"sources": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod",
+		"issues": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod/issues",
+		"curseforge": "https://www.curseforge.com/minecraft/mc-mods/askgemini"
 	},
 	"license": "GPL-3.0-only",
 	"icon": "assets/askgemini/icon.png",

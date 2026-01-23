@@ -22,7 +22,7 @@ public class GeminiIntegration {
 
     // Thread-safe history list
     private static final List<JsonObject> conversationHistory = Collections.synchronizedList(new ArrayList<>());
-    private static final int MAX_HISTORY_SIZE = 20;
+    private static final int MAX_HISTORY_SIZE = 40;
 
     public static CompletableFuture<String> askGemini(String question, String apiKey) {
 

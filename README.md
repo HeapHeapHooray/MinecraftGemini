@@ -58,7 +58,7 @@ To use the mod, you need a free Google Gemini API Key.
 
 ## 🎮 Usage
 
-Simply open the chat and type `@Gemini` followed by your prompt:
+Simply open the chat and type `@Gemini` or `@gemini` followed by your prompt:
 
 **General Questions:**
 ```text
@@ -66,11 +66,11 @@ Simply open the chat and type `@Gemini` followed by your prompt:
 ```
 **Creative Writing:**
 ```text
-@Gemini Tell me a story about a creeper who is afraid of exploding.
+@gemini Tell me a story about a creeper who is afraid of exploding.
 ```
 **Coding Helper:**
 ```text
-@Gemini How does the /fill command work?
+@gemini How does the /fill command work?
 ```
 The AI response will appear in your local chat (visible only to you).
 

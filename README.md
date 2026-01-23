@@ -13,12 +13,13 @@ It allows players to ask questions, get crafting recipes, building tips, or just
 
 ## 🚀 Features
 
-* **🧠 In-Game AI Chat:** Seamlessly talk to Google Gemini 2.5 Flash directly from the chat HUD.
+* **🧠 Contextual Conversation:** The AI remembers your chat history. You can ask follow-up questions (e.g., *"How do I craft that?"*) without repeating yourself.
+* **💬 In-Game AI Chat:** Seamlessly talk to Google Gemini 2.5 Flash directly from the chat HUD.
 * **⚡ Zero Lag:** All requests are processed asynchronously. The game **never freezes** while waiting for a response.
 * **🎨 Rich Text Support:** Automatically converts Markdown (Bold, Italic, Code Blocks) from the AI into Minecraft's legacy color formatting.
 * **🔒 Secure & Private:**  API Keys are stored locally using Base64 encoding.
     * Chat messages starting with `@Gemini` are **client-side only** (they are never sent to the multiplayer server, preserving privacy).
-* **🌈 Visual Feedback:** Dynamic color coding for success and errors.
+* **🌈 Visual Feedback:** Dynamic color coding for success messages and errors messages.
 
 ## 🛠️ Installation (For Players)
 
@@ -46,6 +47,14 @@ To use the mod, you need a free Google Gemini API Key.
     ```
     *Example: `/gemini config AIzaSyD...`*
 4.  The key will be saved locally in `config/askgemini.json`.
+
+## ⌨️ Commands
+
+| Command | Description |
+| :--- | :--- |
+| `/gemini config <API_KEY>` | Sets your Google Gemini API Key. (Required once). |
+| `/gemini clear` | **Clears the conversation history.** Use this if you want to start a new topic or if the AI gets confused. |
+| `/gemini help` | Displays the list of available commands and usage instructions in-game. |
 
 ## 🎮 Usage
 

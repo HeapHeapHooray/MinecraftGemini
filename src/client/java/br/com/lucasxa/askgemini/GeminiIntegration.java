@@ -22,7 +22,7 @@ public class GeminiIntegration {
 
     // Thread-safe history list
     private static final List<JsonObject> conversationHistory = Collections.synchronizedList(new ArrayList<>());
-    private static final int MAX_HISTORY_SIZE = 40;
+    private static final int MAX_HISTORY_SIZE = 20;
 
     public static CompletableFuture<String> askGemini(String question, String apiKey) {
 
@@ -30,7 +30,8 @@ public class GeminiIntegration {
 
         // Enforce sliding window
         while (conversationHistory.size() > MAX_HISTORY_SIZE) {
-            conversationHistory.remove(0);
+            conversationHistory.remove(0); // Remove oldest user message
+            conversationHistory.remove(0); // Remove oldest model response
         }
 
         // Build JSON Body
@@ -66,7 +67,7 @@ public class GeminiIntegration {
 
         // Token limit to prevent huge responses
         JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 1024);
+        generationConfig.addProperty("maxOutputTokens", 700);
         jsonBody.add("generationConfig", generationConfig);
 
         // Send Request
@@ -95,7 +96,7 @@ public class GeminiIntegration {
 
                         // Handle Errors
                         if (status == 400) return "Invalid API Key or Bad Request.";
-                        if (status == 429) return "Too many requests. Please wait.";
+                        if (status == 429) return "Too many requests (Quota exceeded). Wait a bit.";
                         if (status >= 500) return "Gemini unavailable. Try again later.";
                         return "API Error (" + status + ")";
                     }

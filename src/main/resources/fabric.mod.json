@@ -8,7 +8,7 @@
 		"Luks_X_A"
 	],
 	"contact": {
-		"homepage": "https://www.curseforge.com/minecraft/mc-mods/askgemini",
+		"homepage": "https://modrinth.com/mod/askgemini",
 		"sources": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod",
 		"issues": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod/issues"
 	},
@@ -39,6 +39,7 @@
 	"custom": {
 		"modmenu": {
 			"links": {
+				"modmenu.modrinth": "https://modrinth.com/mod/askgemini",
 				"modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/askgemini"
 			},
 			"update_checker": true

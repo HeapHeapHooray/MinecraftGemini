@@ -60,11 +60,11 @@ jar {
 	manifest {
 		attributes([
 				"Specification-Title"     : "AskGemini",
-				"Specification-Vendor"    : "Lucas-X-A",
+				"Specification-Vendor"    : "Luks_X_A",
 				"Specification-Version"   : project.version,
 				"Implementation-Title"    : project.name,
 				"Implementation-Version"  : project.version,
-				"Implementation-Vendor"   : "Lucas-X-A",
+				"Implementation-Vendor"   : "Luks_X_A",
 				"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
 		])
 	}
@@ -86,4 +86,20 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+// Copy external mods to the run/mods directory before running the client in the development environment
+tasks.register('copyExternalMods', Copy) {
+	from("$rootDir/external-mods")
+	include("**/*.jar")
+	into("$projectDir/run/mods")
+	doFirst {
+		file("$projectDir/run/mods").mkdirs()
+	}
+	onlyIf { file("$rootDir/external-mods").exists() && file("$rootDir/external-mods").listFiles()?.any { it.name.endsWith('.jar') } }
+}
+
+// Guarantee that external mods are copied before running the client
+tasks.named('runClient') {
+	dependsOn 'copyExternalMods'
 }

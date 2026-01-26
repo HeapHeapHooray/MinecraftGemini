@@ -99,8 +99,11 @@ public class AskGeminiClient implements ClientModInitializer {
 								String prefixColor = "§b"; // Blue
 								String textColor = "§f"; // White
 
-								if (response.startsWith("Invalid API Key") ||
-									response.startsWith("Too many requests") ||
+								if (response.startsWith("Too many requests")) {
+									prefixColor = "§6"; // Golden
+									textColor = "§e";   // Yellow
+								}
+								else if (response.startsWith("Invalid API Key") ||
 									response.startsWith("Gemini unavailable") ||
 									response.startsWith("API Error") ||
 									response.startsWith("Connection Error")) {
@@ -108,10 +111,28 @@ public class AskGeminiClient implements ClientModInitializer {
 									prefixColor = "§c"; // Red
 									textColor = "§c";
 								}
-								client.player.sendMessage(
-										Text.of(prefixColor + "[Gemini] " + textColor + response),
-										false
-								);
+
+								// Divides the response into lines for better formatting
+								String[] lines = response.split("\n");
+
+								for (int i = 0; i < lines.length; i++) {
+									String line = lines[i].trim();
+									if (line.isEmpty()) continue; // Ignore empty lines
+
+									if (i == 0) {
+										// The first line gets the prefix
+										client.player.sendMessage(
+												Text.of(prefixColor + "[Gemini] " + textColor + line),
+												false
+										);
+									} else {
+										// Next lines are just indented
+										client.player.sendMessage(
+												Text.of(textColor + " " + line),
+												false
+										);
+									}
+								}
 							});
 						});
 				return false; // Prevent the message from being sent to the multiplayer server

@@ -31,7 +31,6 @@ public class GeminiIntegration {
         // Enforce sliding window
         while (conversationHistory.size() > MAX_HISTORY_SIZE) {
             conversationHistory.remove(0);
-            conversationHistory.remove(0);
         }
 
         // Build JSON Body
@@ -67,7 +66,7 @@ public class GeminiIntegration {
 
         // Token limit to prevent huge responses
         JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 600);
+        generationConfig.addProperty("maxOutputTokens", 1024);
         jsonBody.add("generationConfig", generationConfig);
 
         // Send Request

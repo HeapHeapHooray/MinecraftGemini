@@ -52,12 +52,10 @@ public class GeminiIntegration {
         JsonArray partsArr = new JsonArray();
         partsArr.add(partObj);
         systemInstObj.add("parts", partsArr);
-
         jsonBody.add("system_instruction", systemInstObj);
 
+        // Contents (History)
         JsonArray contents = new JsonArray();
-
-        // Synchronized block required for iteration
         synchronized (conversationHistory) {
             for (JsonObject msg : conversationHistory) {
                 contents.add(msg);
@@ -67,8 +65,16 @@ public class GeminiIntegration {
 
         // Token limit to prevent huge responses
         JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 700);
+        generationConfig.addProperty("maxOutputTokens", 1000);
         jsonBody.add("generationConfig", generationConfig);
+
+
+        JsonArray safetySettings = new JsonArray();
+        safetySettings.add(createSafetySetting("HARM_CATEGORY_HARASSMENT", "BLOCK_NONE"));
+        safetySettings.add(createSafetySetting("HARM_CATEGORY_HATE_SPEECH", "BLOCK_NONE"));
+        safetySettings.add(createSafetySetting("HARM_CATEGORY_SEXUALLY_EXPLICIT", "BLOCK_NONE"));
+        safetySettings.add(createSafetySetting("HARM_CATEGORY_DANGEROUS_CONTENT", "BLOCK_NONE"));
+        jsonBody.add("safetySettings", safetySettings);
 
         // Send Request
         HttpRequest request = HttpRequest.newBuilder()
@@ -107,6 +113,14 @@ public class GeminiIntegration {
                 });
     }
 
+    // Helper method to create safety setting object
+    private static JsonObject createSafetySetting(String category, String threshold) {
+        JsonObject setting = new JsonObject();
+        setting.addProperty("category", category);
+        setting.addProperty("threshold", threshold);
+        return setting;
+    }
+
     // Helper method to delete last user message
     private static void rollbackHistory() {
         if (!conversationHistory.isEmpty()) {
@@ -135,16 +149,27 @@ public class GeminiIntegration {
     private static String extractRawText(String jsonResponse) {
         try {
             JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
-            // Verify if response is blocked by safety filters
+
+            // Initial checks
             if (!json.has("candidates") || json.getAsJsonArray("candidates").isEmpty()) {
-                return "Blocked by Safety Filters.";
+                return "Error: No response from AI.";
             }
-            return json.getAsJsonArray("candidates")
-                    .get(0).getAsJsonObject()
-                    .getAsJsonObject("content")
+
+            JsonObject candidate = json.getAsJsonArray("candidates").get(0).getAsJsonObject();
+
+            // Verify if message was blocked
+            if (!candidate.has("content")) {
+                String finishReason = candidate.has("finishReason")
+                        ? candidate.get("finishReason").getAsString()
+                        : "UNKNOWN";
+                return "Error: Message blocked. Reason: " + finishReason;
+            }
+
+            return candidate.getAsJsonObject("content")
                     .getAsJsonArray("parts")
                     .get(0).getAsJsonObject()
                     .get("text").getAsString();
+
         } catch (Exception e) {
             return null;
         }
@@ -170,8 +195,8 @@ public class GeminiIntegration {
         // Inline code
         text = text.replaceAll("`(.*?)`", "§7$1§r");
 
-        // Bullets
-        text = text.replaceAll("(?m)^\\s*[\\-\\*]\\s+", "• ");
+        // Bullet points
+        text = text.replaceAll("(?m)^\\s*[\\-*]\\s+", "• ");
 
         return text.trim();
     }

@@ -8,6 +8,9 @@ import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class AskGeminiClient implements ClientModInitializer {
 
 	@Override
@@ -103,41 +106,66 @@ public class AskGeminiClient implements ClientModInitializer {
 									prefixColor = "§6"; // Golden
 									textColor = "§e";   // Yellow
 								}
-								else if (response.startsWith("Invalid API Key") ||
-									response.startsWith("Gemini unavailable") ||
-									response.startsWith("API Error") ||
-									response.startsWith("Connection Error")) {
-
+								else if (response.startsWith("Error parsing AI") ||
+										 response.startsWith("Invalid API Key") ||
+										 response.startsWith("Gemini unavailable") ||
+									     response.startsWith("API Error") ||
+									     response.startsWith("Connection Error") ||
+								         response.startsWith("Error: Message blocked") ||
+										 response.startsWith("Error: No response")) {
 									prefixColor = "§c"; // Red
-									textColor = "§c";
+									textColor = "§c"; // Red
 								}
 
 								// Divides the response into lines for better formatting
-								String[] lines = response.split("\n");
+                                String[] paragraphs = response.split("\n");
 
-								for (int i = 0; i < lines.length; i++) {
-									String line = lines[i].trim();
-									if (line.isEmpty()) continue; // Ignore empty lines
+                                boolean isFirstLine = true;
 
-									if (i == 0) {
-										// The first line gets the prefix
-										client.player.sendMessage(
-												Text.of(prefixColor + "[Gemini] " + textColor + line),
-												false
-										);
-									} else {
-										// Next lines are just indented
-										client.player.sendMessage(
-												Text.of(textColor + " " + line),
-												false
-										);
-									}
-								}
+                                for (String paragraph : paragraphs) {
+                                    if (paragraph.trim().isEmpty()) continue;
+
+                                    // Wrap long lines
+                                    List<String> wrappedLines = wrapText(paragraph, 100);
+
+                                    for (String visualLine : wrappedLines) {
+                                        if (isFirstLine) {
+                                            client.player.sendMessage(Text.of(prefixColor + "[Gemini] " + textColor + visualLine), false);
+                                            isFirstLine = false;
+                                        } else {
+                                            client.player.sendMessage(Text.of(textColor + " " + visualLine), false);
+                                        }
+                                    }
+                                }
 							});
 						});
+
 				return false; // Prevent the message from being sent to the multiplayer server
 			}
 			return true; // Allow normal chat messages
 		});
 	}
+
+    // Simple Word Wrap Implementation
+    private List<String> wrapText(String text, int maxChars) {
+        List<String> lines = new ArrayList<>();
+        String[] words = text.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+
+        for (String word : words) {
+            // If adding the next word exceeds the limit, start a new line
+            if (currentLine.length() + word.length() + 1 > maxChars) {
+                lines.add(currentLine.toString());
+                currentLine = new StringBuilder();
+            }
+            if (currentLine.length() > 0) {
+                currentLine.append(" ");
+            }
+            currentLine.append(word);
+        }
+        if (currentLine.length() > 0) {
+            lines.add(currentLine.toString());
+        }
+        return lines;
+    }
 }

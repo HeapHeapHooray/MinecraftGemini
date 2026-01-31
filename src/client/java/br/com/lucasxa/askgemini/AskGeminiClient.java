@@ -1,13 +1,14 @@
 package br.com.lucasxa.askgemini;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +22,17 @@ public class AskGeminiClient implements ClientModInitializer {
 
 		// Register Commands
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+
+			// Model Suggestions Provider
+			SuggestionProvider<FabricClientCommandSource> MODEL_SUGGESTIONS = (context, builder) -> {
+				builder.suggest("gemini-2.5-flash", Text.of("§bBest cost-benefit model: §7Comprehensive features, low-latency processing."));
+				builder.suggest("gemini-2.5-flash-lite", Text.of("§bFastest flash model: §7Optimized for cost efficiency and high processing capacity."));
+				builder.suggest("gemini-2.5-pro", Text.of("§bReasoning model: §7Smarter, advanced reasoning, but slower."));
+				builder.suggest("gemini-3-flash-preview", Text.of("§bMost balanced model: §7Faster and cutting-edge intelligence."));
+				builder.suggest("gemini-3-pro-preview", Text.of("§bBest model for multimodal understanding: §7Deeper interactivity and state-of-the-art reasoning."));
+				return builder.buildFuture();
+			};
+
 			dispatcher.register(ClientCommandManager.literal("gemini")
 
 					// Subcommand: /gemini config <API_KEY>
@@ -48,6 +60,20 @@ public class AskGeminiClient implements ClientModInitializer {
 							})
 					)
 
+					// Subcommand: /gemini model <modelId> (Switch AI Model)
+					.then(ClientCommandManager.literal("model")
+							.then(ClientCommandManager.argument("modelId", StringArgumentType.string())
+									.suggests(MODEL_SUGGESTIONS)
+									.executes(context -> {
+										String newModel = StringArgumentType.getString(context, "modelId");
+										ConfigManager.setModel(newModel); // Save model to config
+										context.getSource().sendFeedback(
+												Text.of("§a[AskGemini] Model switched to: §b" + newModel));
+										return 1;
+									})
+							)
+					)
+
 					// Subcommand: /gemini help (Show Command List)
 					.then(ClientCommandManager.literal("help")
 							.executes(context -> {
@@ -55,6 +81,7 @@ public class AskGeminiClient implements ClientModInitializer {
 								source.sendFeedback(Text.of("§b§l--- AskGemini Help ---"));
 								source.sendFeedback(Text.of("§e/gemini config <key> §7- Set your Google AI API Key."));
 								source.sendFeedback(Text.of("§e/gemini clear §7- Delete conversation history (fix hallucinations)."));
+								source.sendFeedback(Text.of("§e/gemini model <name> §7- Switch AI Model."));
 								source.sendFeedback(Text.of("§e/gemini help §7- Show this command list."));
 								source.sendFeedback(Text.of("§bUsage: §fSimply type §e@Gemini <question> §fin chat."));
 								return 1;
@@ -93,7 +120,7 @@ public class AskGeminiClient implements ClientModInitializer {
                 }
 
                 // Call API using the saved Key
-				GeminiIntegration.askGemini(question, ConfigManager.getApiKey())
+				GeminiIntegration.askGemini(question, ConfigManager.getApiKey(), ConfigManager.getModel())
 						.thenAccept(response -> {
 							// Asynchronous task
 							client.execute(() -> {

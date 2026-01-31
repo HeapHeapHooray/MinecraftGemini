@@ -18,7 +18,7 @@ public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     private static final File CONFIG_FILE = CONFIG_DIR.resolve("askgemini.json").toFile();
-
+    private static String currentModel = "gemini-2.5-flash";
     private static String apiKey = "";
 
     // Load config from disk
@@ -30,17 +30,25 @@ public class ConfigManager {
 
         try (FileReader reader = new FileReader(CONFIG_FILE)) {
             JsonObject json = GSON.fromJson(reader, JsonObject.class);
-            if (json != null && json.has("apiKey")) {
-                String encodedKey = json.get("apiKey").getAsString();
-                // Try to decode (Base64 -> Normal Text)
-                try {
-                    byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
-                    apiKey = new String(decodedBytes, StandardCharsets.UTF_8);
-                } catch (IllegalArgumentException e) {
-                    // If fails,
-                    // It assumes it's plain text so as not to break it.
-                    System.err.println("[AskGemini] Config warning: Key might not be encoded. Fixing on next save.");
-                    apiKey = encodedKey;
+
+            if (json != null) {
+                // Load API Key
+                if (json.has("apiKey")) {
+                    String encodedKey = json.get("apiKey").getAsString();
+                    // Try to decode (Base64 -> Normal Text)
+                    try {
+                        byte[] decodedBytes = Base64.getDecoder().decode(encodedKey);
+                        apiKey = new String(decodedBytes, StandardCharsets.UTF_8);
+                    } catch (IllegalArgumentException e) {
+                        // If fails, it assumes it's plain text so as not to break it.
+                        System.err.println("[AskGemini] Config warning: Key might not be encoded. Fixing on next save.");
+                        apiKey = encodedKey;
+                    }
+                }
+
+                // Load Model
+                if (json.has("model")) {
+                    currentModel = json.get("model").getAsString();
                 }
             }
         } catch (IOException e) {
@@ -61,6 +69,13 @@ public class ConfigManager {
                 json.addProperty("apiKey", "");
             }
 
+            // Save current model
+            if (currentModel != null && !currentModel.isEmpty()) {
+                json.addProperty("model", currentModel);
+            } else {
+                json.addProperty("model", "gemini-2.5-flash");
+            }
+
             GSON.toJson(json, writer);
         } catch (IOException e) {
             System.err.println("[AskGemini] Failed to save config: " + e.getMessage());
@@ -79,5 +94,14 @@ public class ConfigManager {
 
     public static boolean hasKey() {
         return apiKey != null && !apiKey.isBlank();
+    }
+
+    public static String getModel() {
+        return currentModel;
+    }
+
+    public static void setModel(String model) {
+        currentModel = model;
+        save(); // Auto-save when setting
     }
 }

@@ -11,8 +11,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class AskGeminiClient implements ClientModInitializer {
+
+	// Scheduler for delayed tasks
+	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 	@Override
 	public void onInitializeClient() {
@@ -40,7 +47,6 @@ public class AskGeminiClient implements ClientModInitializer {
 							.then(ClientCommandManager.argument("key", StringArgumentType.greedyString())
 									.executes(context -> {
 										String newKey = StringArgumentType.getString(context, "key");
-										// Save API Key to file
 										ConfigManager.setApiKey(newKey);
 										// User Feedback
 										context.getSource().sendFeedback(
@@ -110,18 +116,32 @@ public class AskGeminiClient implements ClientModInitializer {
                     String playerName = client.player.getName().getString();
 					Text userChatEntry = Text.of("<" + playerName + "> " + message);
 					client.inGameHud.getChatHud().addMessage(userChatEntry);
+
+					// Visual "Thinking..." feedback
+					client.player.sendMessage(Text.of("§7§o[Gemini] Thinking..."), false);
                 }
 
 				String question = message.substring(8);
 
-				// Visual "Thinking..." feedback
-                if (client.player != null) {
-                    client.player.sendMessage(Text.of("§7§o[Gemini] Thinking..."), false);
-                }
+				// Schedule delayed "Still thinking..." message
+				ScheduledFuture<?> slowResponseTask = scheduler.schedule(() -> {
+					// Asynchronous task
+					client.execute(() -> {
+						if (client.player != null) {
+							client.player.sendMessage(
+									Text.of("§7§o[Gemini] Still thinking..."),
+									false
+							);
+						}
+					});
+				}, 8, TimeUnit.SECONDS);
 
                 // Call API using the saved Key
 				GeminiIntegration.askGemini(question, ConfigManager.getApiKey(), ConfigManager.getModel())
 						.thenAccept(response -> {
+							// Cancel the "Still thinking..." message
+							slowResponseTask.cancel(false);
+
 							// Asynchronous task
 							client.execute(() -> {
 								if (client.player == null) return;

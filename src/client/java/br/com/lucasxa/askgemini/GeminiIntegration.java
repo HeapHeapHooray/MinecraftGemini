@@ -15,16 +15,15 @@ import java.util.concurrent.CompletableFuture;
 
 public class GeminiIntegration {
 
-    // Gemini API Endpoint
-    private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-
     private static final HttpClient client = HttpClient.newHttpClient();
-
     // Thread-safe history list
     private static final List<JsonObject> conversationHistory = Collections.synchronizedList(new ArrayList<>());
     private static final int MAX_HISTORY_SIZE = 20;
 
-    public static CompletableFuture<String> askGemini(String question, String apiKey) {
+    public static CompletableFuture<String> askGemini(String question, String apiKey, String modelId) {
+
+        // Dynamic URL based on the model selected
+        String dynamicUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelId + ":generateContent";
 
         conversationHistory.add(createMessage("user", question));
 
@@ -78,7 +77,7 @@ public class GeminiIntegration {
 
         // Send Request
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(API_URL + "?key=" + apiKey))
+                .uri(URI.create(dynamicUrl + "?key=" + apiKey))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody.toString()))
                 .build();

@@ -62,12 +62,6 @@ public class GeminiIntegration {
         }
         jsonBody.add("contents", contents);
 
-        // Token limit to prevent huge responses
-        JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 1000);
-        jsonBody.add("generationConfig", generationConfig);
-
-
         JsonArray safetySettings = new JsonArray();
         safetySettings.add(createSafetySetting("HARM_CATEGORY_HARASSMENT", "BLOCK_NONE"));
         safetySettings.add(createSafetySetting("HARM_CATEGORY_HATE_SPEECH", "BLOCK_NONE"));

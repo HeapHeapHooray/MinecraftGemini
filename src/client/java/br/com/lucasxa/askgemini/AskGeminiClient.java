@@ -134,7 +134,7 @@ public class AskGeminiClient implements ClientModInitializer {
 							);
 						}
 					});
-				}, 8, TimeUnit.SECONDS);
+				}, 15, TimeUnit.SECONDS);
 
                 // Call API using the saved Key
 				GeminiIntegration.askGemini(question, ConfigManager.getApiKey(), ConfigManager.getModel())

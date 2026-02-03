@@ -89,7 +89,8 @@ public class AskGeminiClient implements ClientModInitializer {
 								source.sendFeedback(Text.of("§e/gemini clear §7- Delete conversation history (fix hallucinations)."));
 								source.sendFeedback(Text.of("§e/gemini model <name> §7- Switch AI Model."));
 								source.sendFeedback(Text.of("§e/gemini help §7- Show this command list."));
-								source.sendFeedback(Text.of("§bUsage: §fSimply type §e@Gemini <question> §fin chat."));
+								source.sendFeedback(Text.of("§bUsage: §fSimply type §b@gemini §e<your question> §fin chat."));
+								source.sendFeedback(Text.of("§b§l----------------------"));
 								return 1;
 							})
 					)

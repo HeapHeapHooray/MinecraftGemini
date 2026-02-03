@@ -34,9 +34,9 @@ public class AskGeminiClient implements ClientModInitializer {
 			SuggestionProvider<FabricClientCommandSource> MODEL_SUGGESTIONS = (context, builder) -> {
 				builder.suggest("gemini-2.5-flash", Text.of("§bBest cost-benefit model: §7Comprehensive features, low-latency processing."));
 				builder.suggest("gemini-2.5-flash-lite", Text.of("§bFastest flash model: §7Optimized for cost efficiency and high processing capacity."));
-				builder.suggest("gemini-2.5-pro", Text.of("§bReasoning model: §7Smarter, advanced reasoning, but slower."));
+				builder.suggest("gemini-2.5-pro", Text.of("§bReasoning model: §7Smarter, advanced reasoning, but a bit slower than 2.5 flash."));
 				builder.suggest("gemini-3-flash-preview", Text.of("§bMost balanced model: §7Faster and cutting-edge intelligence."));
-				builder.suggest("gemini-3-pro-preview", Text.of("§bBest model for multimodal understanding: §7Deeper interactivity and state-of-the-art reasoning."));
+				builder.suggest("gemini-3-pro-preview", Text.of("§bBest model for multimodal understanding: §7Deeper interactivity. §c§l[REQUIRES PAID API KEY]"));
 				return builder.buildFuture();
 			};
 
@@ -113,8 +113,11 @@ public class AskGeminiClient implements ClientModInitializer {
 				}
 
                 if (client.player != null) {
+					// Echo user's question in chat
                     String playerName = client.player.getName().getString();
-					Text userChatEntry = Text.of("<" + playerName + "> " + message);
+					String rawPrefix = message.substring(0, 7);
+					String content = message.substring(7);
+					Text userChatEntry = Text.of("<" + playerName + "> §b" + rawPrefix + "§f" + content);
 					client.inGameHud.getChatHud().addMessage(userChatEntry);
 
 					// Visual "Thinking..." feedback

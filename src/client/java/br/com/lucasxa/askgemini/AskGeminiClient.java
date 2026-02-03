@@ -84,13 +84,13 @@ public class AskGeminiClient implements ClientModInitializer {
 					.then(ClientCommandManager.literal("help")
 							.executes(context -> {
 								var source = context.getSource();
-								source.sendFeedback(Text.of("§b§l--- AskGemini Help ---"));
+								source.sendFeedback(Text.of("§b§m      §r §bAskGemini Help §r§b§m      "));
 								source.sendFeedback(Text.of("§e/gemini config <key> §7- Set your Google AI API Key."));
 								source.sendFeedback(Text.of("§e/gemini clear §7- Delete conversation history (fix hallucinations)."));
 								source.sendFeedback(Text.of("§e/gemini model <name> §7- Switch AI Model."));
 								source.sendFeedback(Text.of("§e/gemini help §7- Show this command list."));
 								source.sendFeedback(Text.of("§bUsage: §fSimply type §b@gemini §e<your question> §fin chat."));
-								source.sendFeedback(Text.of("§b§l----------------------"));
+								source.sendFeedback(Text.of("§b§m                                "));
 								return 1;
 							})
 					)

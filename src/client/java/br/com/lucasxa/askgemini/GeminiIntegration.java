@@ -149,7 +149,7 @@ public class GeminiIntegration {
 
                                         if (modelId.contains("pro") && msg.contains("limit: 0")) {
                                             // Specific message for Pro model with zero quota
-                                            return "Error: This model requires a Paid API Key (Free tier not supported).";
+                                            return "This model requires a Paid API Key (Free tier not supported).";
                                         }
                                     }
                                 }

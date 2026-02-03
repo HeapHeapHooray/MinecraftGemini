@@ -161,7 +161,8 @@ public class AskGeminiClient implements ClientModInitializer {
 										 response.startsWith("Gemini unavailable") ||
 									     response.startsWith("API Error") ||
 									     response.startsWith("Connection Error") ||
-								         response.startsWith("Error:")) {
+								         response.startsWith("Error:") ||
+								         response.startsWith("This model requires a Paid API Key")) {
 									prefixColor = "§c"; // Red
 									textColor = "§c"; // Red
 								}

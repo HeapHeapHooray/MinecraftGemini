@@ -1,6 +1,7 @@
 package br.com.lucasxa.askgemini;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -69,6 +70,25 @@ public class GeminiIntegration {
         safetySettings.add(createSafetySetting("HARM_CATEGORY_DANGEROUS_CONTENT", "BLOCK_NONE"));
         jsonBody.add("safetySettings", safetySettings);
 
+        JsonObject generationConfig = new JsonObject();
+        generationConfig.addProperty("maxOutputTokens", 1600);
+
+        // Model-specific thinking configurations
+        if (modelId.startsWith("gemini-3")) {
+            JsonObject thinkingConfig = new JsonObject();
+
+            if (modelId.contains("flash")) {
+                thinkingConfig.addProperty("thinkingLevel", "medium");
+            }
+            else if (modelId.contains("pro")) {
+                thinkingConfig.addProperty("thinkingLevel", "high");
+            }
+
+            generationConfig.add("thinkingConfig", thinkingConfig);
+        }
+
+        jsonBody.add("generationConfig", generationConfig);
+
         // Send Request
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(dynamicUrl + "?key=" + apiKey))
@@ -82,13 +102,34 @@ public class GeminiIntegration {
 
                     // Successful Response
                     if (status == 200) {
-                        String rawAiResponse = extractRawText(response.body());
+                        try {
+                            // Parse JSON Response
+                            JsonObject responseJson = JsonParser.parseString(response.body()).getAsJsonObject();
 
-                        if (rawAiResponse != null) {
-                            conversationHistory.add(createMessage("model", rawAiResponse));
-                            return convertMarkdownToMinecraft(rawAiResponse);
+                            if (!responseJson.has("candidates") || responseJson.getAsJsonArray("candidates").isEmpty()) {
+                                return "Error: No response from AI.";
+                            }
+
+                            JsonObject candidate = responseJson.getAsJsonArray("candidates").get(0).getAsJsonObject();
+
+                            if (!candidate.has("content")) {
+                                String finishReason = candidate.has("finishReason") ? candidate.get("finishReason").getAsString() : "UNKNOWN";
+                                return "Error: Message blocked (" + finishReason + ")";
+                            }
+
+                            // Extract content object
+                            JsonObject contentObj = candidate.getAsJsonObject("content");
+
+                            // Save response to history
+                            conversationHistory.add(contentObj);
+
+                            // Extract text for display
+                            String visualText = extractTextForDisplay(contentObj);
+
+                            return convertMarkdownToMinecraft(visualText);
+                        } catch (Exception e) {
+                            return "Error parsing AI response: " + e.getMessage();
                         }
-                        return "Error parsing AI response.";
                     } else {
                         // Rollback history on error
                         rollbackHistory();
@@ -138,34 +179,20 @@ public class GeminiIntegration {
         return message;
     }
 
-    // Extracts the raw text from the JSON response
-    private static String extractRawText(String jsonResponse) {
-        try {
-            JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
-
-            // Initial checks
-            if (!json.has("candidates") || json.getAsJsonArray("candidates").isEmpty()) {
-                return "Error: No response from AI.";
+    // Extracts only the text content for display from the response content object
+    private static String extractTextForDisplay(JsonObject content) {
+        StringBuilder sb = new StringBuilder();
+        if (content.has("parts")) {
+            JsonArray parts = content.getAsJsonArray("parts");
+            for (JsonElement p : parts) {
+                JsonObject part = p.getAsJsonObject();
+                // Ignores other content types
+                if (part.has("text")) {
+                    sb.append(part.get("text").getAsString());
+                }
             }
-
-            JsonObject candidate = json.getAsJsonArray("candidates").get(0).getAsJsonObject();
-
-            // Verify if message was blocked
-            if (!candidate.has("content")) {
-                String finishReason = candidate.has("finishReason")
-                        ? candidate.get("finishReason").getAsString()
-                        : "UNKNOWN";
-                return "Error: Message blocked. Reason: " + finishReason;
-            }
-
-            return candidate.getAsJsonObject("content")
-                    .getAsJsonArray("parts")
-                    .get(0).getAsJsonObject()
-                    .get("text").getAsString();
-
-        } catch (Exception e) {
-            return null;
         }
+        return sb.toString();
     }
 
     // Converts Markdown formatting to Minecraft formatting text

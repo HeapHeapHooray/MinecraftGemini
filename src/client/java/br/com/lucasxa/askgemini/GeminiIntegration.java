@@ -136,7 +136,28 @@ public class GeminiIntegration {
 
                         // Handle Errors
                         if (status == 400) return "Invalid API Key or Bad Request.";
-                        if (status == 429) return "Too many requests (Quota exceeded). Wait a bit.";
+                        if (status == 429) {
+                            try {
+                                // Try to parse error message for more details
+                                JsonObject errorJson = JsonParser.parseString(response.body()).getAsJsonObject();
+
+                                if (errorJson.has("error")) {
+                                    JsonObject errorObj = errorJson.getAsJsonObject("error");
+
+                                    if (errorObj.has("message")) {
+                                        String msg = errorObj.get("message").getAsString();
+
+                                        if (modelId.contains("pro") && msg.contains("limit: 0")) {
+                                            // Specific message for Pro model with zero quota
+                                            return "Error: This model requires a Paid API Key (Free tier not supported).";
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // Ignore parsing errors and use generic message
+                            }
+                            return "Too many requests (Quota exceeded). Wait a bit.";
+                        }
                         if (status >= 500) return "Gemini unavailable. Try again later.";
                         return "API Error (" + status + ")";
                     }

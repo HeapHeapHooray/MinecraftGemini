@@ -71,7 +71,7 @@ public class GeminiIntegration {
         jsonBody.add("safetySettings", safetySettings);
 
         JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 1600);
+        generationConfig.addProperty("maxOutputTokens", 2000);
 
         // Model-specific thinking configurations
         if (modelId.startsWith("gemini-3")) {

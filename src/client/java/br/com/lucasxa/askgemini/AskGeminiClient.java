@@ -34,7 +34,7 @@ public class AskGeminiClient implements ClientModInitializer {
 			SuggestionProvider<FabricClientCommandSource> MODEL_SUGGESTIONS = (context, builder) -> {
 				builder.suggest("gemini-2.5-flash", Text.of("§bBest cost-benefit model: §7Comprehensive features, low-latency processing."));
 				builder.suggest("gemini-2.5-flash-lite", Text.of("§bFastest flash model: §7Optimized for cost efficiency and high processing capacity."));
-				builder.suggest("gemini-2.5-pro", Text.of("§bReasoning model: §7Smarter, advanced reasoning, but a bit slower than 2.5 flash."));
+				builder.suggest("gemini-2.5-pro", Text.of("§bReasoning model: §7Smarter, advanced reasoning. §c§l[REQUIRES PAID API KEY]"));
 				builder.suggest("gemini-3-flash-preview", Text.of("§bMost balanced model: §7Faster and cutting-edge intelligence."));
 				builder.suggest("gemini-3-pro-preview", Text.of("§bBest model for multimodal understanding: §7Deeper interactivity. §c§l[REQUIRES PAID API KEY]"));
 				return builder.buildFuture();
@@ -161,8 +161,7 @@ public class AskGeminiClient implements ClientModInitializer {
 										 response.startsWith("Gemini unavailable") ||
 									     response.startsWith("API Error") ||
 									     response.startsWith("Connection Error") ||
-								         response.startsWith("Error: Message blocked") ||
-										 response.startsWith("Error: No response")) {
+								         response.startsWith("Error:")) {
 									prefixColor = "§c"; // Red
 									textColor = "§c"; // Red
 								}

@@ -85,7 +85,7 @@ If you want to contribute or modify the mod, follow these steps:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/YourUsername/AskGemini.git](https://github.com/YourUsername/AskGemini.git)
+    git clone [https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod.git](https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod.git)
     cd AskGemini
     ```
 

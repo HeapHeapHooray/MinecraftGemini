@@ -4,6 +4,8 @@
 ![Fabric](https://img.shields.io/badge/Loader-Fabric-box)
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Version](https://img.shields.io/badge/Minecraft-1.21.x-brightgreen)
+[![Modrinth](https://img.shields.io/badge/Modrinth-Download-success?logo=modrinth)](https://modrinth.com/mod/askgemini)
+[![CurseForge](https://img.shields.io/badge/CurseForge-Download-orange?logo=curseforge)](https://www.curseforge.com/minecraft/mc-mods/askgemini)
 
 **AskGemini** is a client-side Minecraft Fabric mod that integrates Google's Gemini AI directly into your in-game chat.
 
@@ -14,7 +16,7 @@ It allows players to ask questions, get crafting recipes, building tips, or just
 ## 🚀 Features
 
 * **🧠 Contextual Conversation:** The AI remembers your chat history. You can ask follow-up questions (e.g., *"How do I craft that?"*) without repeating yourself.
-* **💬 In-Game AI Chat:** Seamlessly talk to Google Gemini 2.5 Flash directly from the chat HUD.
+* **💬 In-Game AI Chat:** Seamlessly talk to Google Gemini 2.5 Flash and other Gemini models directly from the chat HUD.
 * **⚡ Zero Lag:** All requests are processed asynchronously. The game **never freezes** while waiting for a response.
 * **🎨 Rich Text Support:** Automatically converts Markdown (Bold, Italic, Code Blocks) from the AI into Minecraft's legacy color formatting.
 * **🔒 Secure & Private:**  API Keys are stored locally using Base64 encoding.
@@ -29,7 +31,10 @@ It allows players to ask questions, get crafting recipes, building tips, or just
     * Download the [Fabric API](https://modrinth.com/mod/fabric-api) mod (required).
 
 2.  **Download AskGemini:**
-    * Download the latest `.jar` file from the [Releases](../../releases) tab.
+    * Download the latest version from the official pages of the mod:
+      * [Modrinth](https://modrinth.com/mod/askgemini).
+      * [CurseForge](https://www.curseforge.com/minecraft/mc-mods/askgemini)
+    * *(Alternatively, you can get the `.jar` file from the [GitHub Releases](../../releases) tab).*
 
 3.  **Install:**
     * Place the `.jar` file into your Minecraft `mods` folder.

@@ -4,6 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.Gson;
+import com.mojang.brigadier.ParseResults;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.command.CommandSource;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Text;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,18 +28,11 @@ public class GeminiIntegration {
     private static final List<JsonObject> conversationHistory = Collections.synchronizedList(new ArrayList<>());
     private static final int MAX_HISTORY_SIZE = 20;
 
-    public static CompletableFuture<String> askGemini(String question, String apiKey, String modelId) {
+
+    public static CompletableFuture<String> promptGemini(List<String> messages,String apiKey, String modelId) {
 
         // Dynamic URL based on the model selected
         String dynamicUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelId + ":generateContent";
-
-        conversationHistory.add(createMessage("user", question));
-
-        // Enforce sliding window
-        while (conversationHistory.size() > MAX_HISTORY_SIZE) {
-            conversationHistory.remove(0); // Remove oldest user message
-            conversationHistory.remove(0); // Remove oldest model response
-        }
 
         // Build JSON Body
         JsonObject jsonBody = new JsonObject();
@@ -40,14 +40,12 @@ public class GeminiIntegration {
         // Defines the system instruction of the AI
         JsonObject systemInstObj = new JsonObject();
         JsonObject partObj = new JsonObject();
-        partObj.addProperty("text",
-                "You are a helpful Minecraft assistant inside the game chat. " +
-                        "Keep your answers short and concise. " +
-                        "Do NOT use emojis, icons, or images. " +
-                        "Do NOT use complex Unicode symbols (like mathematical symbols). " +
-                        "The game chat only supports standard text. " +
-                        "Avoid using complex markdown. " +
-                        "Always answer in the same language as the user's prompt."
+        String SYSTEM_PROMPT =
+                "You are an assistant inside Minecraft. The user's request is the last message starting with \"@gemini\" (case-insensitive), follow the request classifying the next thought as INTERMEDIATE or as the eventual FINAL." +
+                        "Return a JSON object with fields: mode (INTERMEDIATE|FINAL), message (plain text), and commands (array). " +
+                        "For INTERMEDIATE, return the next step needed to finish the request, commands sent will be run."  +
+                        "if this is the last step or past the last step to conclude the request , then its FINAL, return the message that will be shown to the user (this is the result of your finished thought process), there are NO commands in FINAL mode.";
+        partObj.addProperty("text",SYSTEM_PROMPT
         );
         JsonArray partsArr = new JsonArray();
         partsArr.add(partObj);
@@ -56,11 +54,12 @@ public class GeminiIntegration {
 
         // Contents (History)
         JsonArray contents = new JsonArray();
-        synchronized (conversationHistory) {
-            for (JsonObject msg : conversationHistory) {
-                contents.add(msg);
+        synchronized (messages) {
+            for (String message : messages) {
+                contents.add(createMessageNoRole(message));
             }
         }
+
         jsonBody.add("contents", contents);
 
         JsonArray safetySettings = new JsonArray();
@@ -71,7 +70,7 @@ public class GeminiIntegration {
         jsonBody.add("safetySettings", safetySettings);
 
         JsonObject generationConfig = new JsonObject();
-        generationConfig.addProperty("maxOutputTokens", 1200);
+        generationConfig.addProperty("maxOutputTokens", 12000);
 
         // Model-specific thinking configurations
         if (modelId.startsWith("gemini-3")) {
@@ -87,6 +86,7 @@ public class GeminiIntegration {
             generationConfig.add("thinkingConfig", thinkingConfig);
         }
 
+        generationConfig.addProperty("responseMimeType","application/json");
         jsonBody.add("generationConfig", generationConfig);
 
         // Send Request
@@ -119,14 +119,48 @@ public class GeminiIntegration {
 
                             // Extract content object
                             JsonObject contentObj = candidate.getAsJsonObject("content");
-
-                            // Save response to history
-                            conversationHistory.add(contentObj);
-
                             // Extract text for display
                             String visualText = extractTextForDisplay(contentObj);
 
-                            return convertMarkdownToMinecraft(visualText);
+                            AskGeminiClient.logMessage(Text.of(visualText));
+
+                            JsonObject jsonObject = new Gson().fromJson(visualText, JsonObject.class);
+
+                            String mode = jsonObject.get("mode").getAsString();
+
+                            if("FINAL".equals(mode)) {
+                                if(AskGeminiClient.waitingForCommand) {
+                                    AskGeminiClient.waitingForCommand = false;
+                                    return jsonObject.get("message").getAsString();
+                                }
+                                else {
+                                    return "EMPTY";
+                                }
+                            }
+                            else if("INTERMEDIATE".equals(mode) && AskGeminiClient.waitingForCommand) {
+
+                                JsonArray commandsArray = jsonObject.getAsJsonArray("commands");
+
+                                List<String> commands = new ArrayList<>();
+
+                                for (JsonElement element : commandsArray) {
+                                    String command = element.getAsString();
+
+                                    if (command.startsWith("/")) {
+                                        command = command.substring(1);
+                                    }
+
+                                    commands.add(command);
+                                }
+
+
+                                for (String command : commands) {
+                                    MinecraftClient.getInstance().getNetworkHandler().sendChatCommand(command);
+                                }
+
+                                return jsonObject.get("message").getAsString();
+                            }
+                            return "EMPTY";
                         } catch (Exception e) {
                             return "Error parsing AI response: " + e.getMessage();
                         }
@@ -188,6 +222,17 @@ public class GeminiIntegration {
         conversationHistory.clear();
     }
 
+
+    private static JsonObject createMessageNoRole(String text) {
+        text = text + "\n";
+        JsonObject message = new JsonObject();
+        JsonArray parts = new JsonArray();
+        JsonObject part = new JsonObject();
+        part.addProperty("text", text);
+        parts.add(part);
+        message.add("parts", parts);
+        return message;
+    }
     // Creates a message object for the Gemini API
     private static JsonObject createMessage(String role, String text) {
         JsonObject message = new JsonObject();

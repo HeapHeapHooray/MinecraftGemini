@@ -18,7 +18,7 @@ public class ConfigManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
     private static final File CONFIG_FILE = CONFIG_DIR.resolve("askgemini.json").toFile();
-    private static String currentModel = "gemini-2.5-flash";
+    private static String currentModel = "gemini-3-flash-preview";
     private static String apiKey = "";
 
     // Load config from disk

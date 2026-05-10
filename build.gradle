@@ -15,7 +15,7 @@ repositories {}
 loom {
 	splitEnvironmentSourceSets()
 	mods {
-		"askgemini" {
+		"minecraftgemini" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
@@ -59,7 +59,7 @@ jar {
 
 	manifest {
 		attributes([
-				"Specification-Title"     : "AskGemini",
+				"Specification-Title"     : "MinecraftGemini",
 				"Specification-Vendor"    : "Luks_X_A",
 				"Specification-Version"   : project.version,
 				"Implementation-Title"    : project.name,

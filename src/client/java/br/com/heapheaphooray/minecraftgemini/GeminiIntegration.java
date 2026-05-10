@@ -1,4 +1,4 @@
-package br.com.HeapHeapHooray.askgemini;
+package br.com.heapheaphooray.minecraftgemini;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -127,7 +127,7 @@ public class GeminiIntegration {
                             // Extract text for display
                             String visualText = extractTextForDisplay(contentObj);
 
-                            AskGeminiClient.logMessage(Text.of(visualText));
+                            MinecraftGeminiClient.logMessage(Text.of(visualText));
 
                             JsonObject jsonObject = new Gson().fromJson(visualText, JsonObject.class);
 
@@ -135,28 +135,28 @@ public class GeminiIntegration {
 
                             if("FINAL".equals(mode)) {
                                 try {
-                                    AskGeminiClient.mutex.lock();
-                                    if(AskGeminiClient.waitingForCommand) {
-                                        AskGeminiClient.waitingForCommand = false;
-                                        AskGeminiClient.currentBase64Image = null;
+                                    MinecraftGeminiClient.mutex.lock();
+                                    if(MinecraftGeminiClient.waitingForCommand) {
+                                        MinecraftGeminiClient.waitingForCommand = false;
+                                        MinecraftGeminiClient.currentBase64Image = null;
                                         return jsonObject.get("message").getAsString();
                                     }
                                     else {
                                         return "EMPTY";
                                     }
                                 } finally {
-                                    AskGeminiClient.mutex.unlock();
+                                    MinecraftGeminiClient.mutex.unlock();
                                 }
                             }
                             else if("INTERMEDIATE".equals(mode)) {
                                 boolean shouldProcess = false;
                                 try {
-                                    AskGeminiClient.mutex.lock();
-                                    if (AskGeminiClient.waitingForCommand) {
+                                    MinecraftGeminiClient.mutex.lock();
+                                    if (MinecraftGeminiClient.waitingForCommand) {
                                         shouldProcess = true;
                                     }
                                 } finally {
-                                    AskGeminiClient.mutex.unlock();
+                                    MinecraftGeminiClient.mutex.unlock();
                                 }
 
                                 if (shouldProcess) {

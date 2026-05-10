@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "br.com.HeapHeapHooray.askgemini.mixin.client",
+	"package": "br.com.heapheaphooray.minecraftgemini.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"ExampleClientMixin"

@@ -1,4 +1,4 @@
-package br.com.HeapHeapHooray.askgemini;
+package br.com.heapheaphooray.minecraftgemini;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class AskGeminiClient implements ClientModInitializer {
+public class MinecraftGeminiClient implements ClientModInitializer {
 
 	// Scheduler for delayed tasks
 	private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
@@ -49,7 +49,7 @@ public class AskGeminiClient implements ClientModInitializer {
 	public static List<String> messages = Collections.synchronizedList(new ArrayList<>());
 
 	public static  boolean visible = false;
-	private static final Logger log = LoggerFactory.getLogger(AskGeminiClient.class);
+	private static final Logger log = LoggerFactory.getLogger(MinecraftGeminiClient.class);
 
 	public static boolean waitingForCommand = false;
 	public static boolean isThinking = false;
@@ -99,7 +99,7 @@ public class AskGeminiClient implements ClientModInitializer {
 		// Load Configuration on Startup
 
 		ConfigManager.load();
-		System.out.println("[AskGemini] Config loaded.");
+		System.out.println("[MinecraftGemini] Config loaded.");
 
 
 
@@ -126,7 +126,7 @@ public class AskGeminiClient implements ClientModInitializer {
 										ConfigManager.setApiKey(newKey);
 										// User Feedback
 										context.getSource().sendFeedback(
-												Text.of("§a[AskGemini] API Key saved successfully!"));
+												Text.of("§a[MinecraftGemini] API Key saved successfully!"));
 										return 1;
 									})
 							)
@@ -137,7 +137,7 @@ public class AskGeminiClient implements ClientModInitializer {
 							.executes(context -> {
 								messages = Collections.synchronizedList(new ArrayList<>());
 								context.getSource().sendFeedback(
-										Text.of("§a[AskGemini] Conversation history cleared! Context reset."));
+										Text.of("§a[MinecraftGemini] Conversation history cleared! Context reset."));
 								return 1;
 							})
 					)
@@ -150,7 +150,7 @@ public class AskGeminiClient implements ClientModInitializer {
 										String newModel = StringArgumentType.getString(context, "modelId");
 										ConfigManager.setModel(newModel); // Save model to config
 										context.getSource().sendFeedback(
-												Text.of("§a[AskGemini] Model switched to: §b" + newModel));
+												Text.of("§a[MinecraftGemini] Model switched to: §b" + newModel));
 										return 1;
 									})
 							)
@@ -160,7 +160,7 @@ public class AskGeminiClient implements ClientModInitializer {
 					.then(ClientCommandManager.literal("help")
 							.executes(context -> {
 								var source = context.getSource();
-								source.sendFeedback(Text.of("§b§m      §r §bAskGemini Help §r§b§m      "));
+								source.sendFeedback(Text.of("§b§m      §r §bMinecraftGemini Help §r§b§m      "));
 								source.sendFeedback(Text.of("§e/gemini config <key> §7- Set your Google AI API Key."));
 								source.sendFeedback(Text.of("§e/gemini clear §7- Delete conversation history (fix hallucinations)."));
 								source.sendFeedback(Text.of("§e/gemini model <name> §7- Switch AI Model."));
@@ -198,7 +198,7 @@ public class AskGeminiClient implements ClientModInitializer {
 			if (!ConfigManager.hasKey()) {
 				if (client.player != null) {
 					client.player.sendMessage(
-							Text.of("§c[AskGemini] Error: API Key not configured. Use: /gemini config <YOUR_API_KEY>"),
+							Text.of("§c[MinecraftGemini] Error: API Key not configured. Use: /gemini config <YOUR_API_KEY>"),
 							false
 					);
 				}

@@ -1,32 +1,32 @@
 {
 	"schemaVersion": 1,
-	"id": "askgemini",
+	"id": "minecraftgemini",
 	"version": "${version}",
-	"name": "AskGemini",
+	"name": "MinecraftGemini",
 	"description": "A Minecraft mod that integrates Google Gemini AI directly into the in-game chat.",
 	"authors": [
 		"Luks_X_A"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/askgemini",
-		"sources": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod",
-		"issues": "https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod/issues"
+		"homepage": "https://modrinth.com/mod/minecraftgemini",
+		"sources": "https://github.com/Lucas-X-A/MinecraftGemini_Minecraft_Mod",
+		"issues": "https://github.com/Lucas-X-A/MinecraftGemini_Minecraft_Mod/issues"
 	},
 	"license": "GPL-3.0-only",
-	"icon": "assets/askgemini/icon.png",
+	"icon": "assets/minecraftgemini/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"br.com.HeapHeapHooray.askgemini.AskGemini"
+			"br.com.heapheaphooray.minecraftgemini.MinecraftGemini"
 		],
 		"client": [
-			"br.com.HeapHeapHooray.askgemini.AskGeminiClient"
+			"br.com.heapheaphooray.minecraftgemini.MinecraftGeminiClient"
 		]
 	},
 	"mixins": [
-		"askgemini.mixins.json",
+		"minecraftgemini.mixins.json",
 		{
-			"config": "askgemini.client.mixins.json",
+			"config": "minecraftgemini.client.mixins.json",
 			"environment": "client"
 		}
 	],
@@ -39,8 +39,8 @@
 	"custom": {
 		"modmenu": {
 			"links": {
-				"modmenu.modrinth": "https://modrinth.com/mod/askgemini",
-				"modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/askgemini"
+				"modmenu.modrinth": "https://modrinth.com/mod/minecraftgemini",
+				"modmenu.curseforge": "https://www.curseforge.com/minecraft/mc-mods/minecraftgemini"
 			},
 			"update_checker": true
 		}

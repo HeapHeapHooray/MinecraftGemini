@@ -1,4 +1,4 @@
-package br.com.HeapHeapHooray.askgemini;
+package br.com.heapheaphooray.minecraftgemini;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,7 +17,7 @@ public class ConfigManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir();
-    private static final File CONFIG_FILE = CONFIG_DIR.resolve("askgemini.json").toFile();
+    private static final File CONFIG_FILE = CONFIG_DIR.resolve("minecraftgemini.json").toFile();
     private static String currentModel = "gemini-3-flash-preview";
     private static String apiKey = "";
 
@@ -41,7 +41,7 @@ public class ConfigManager {
                         apiKey = new String(decodedBytes, StandardCharsets.UTF_8);
                     } catch (IllegalArgumentException e) {
                         // If fails, it assumes it's plain text so as not to break it.
-                        System.err.println("[AskGemini] Config warning: Key might not be encoded. Fixing on next save.");
+                        System.err.println("[MinecraftGemini] Config warning: Key might not be encoded. Fixing on next save.");
                         apiKey = encodedKey;
                     }
                 }
@@ -52,7 +52,7 @@ public class ConfigManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("[AskGemini] Failed to load config: " + e.getMessage());
+            System.err.println("[MinecraftGemini] Failed to load config: " + e.getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ public class ConfigManager {
 
             GSON.toJson(json, writer);
         } catch (IOException e) {
-            System.err.println("[AskGemini] Failed to save config: " + e.getMessage());
+            System.err.println("[MinecraftGemini] Failed to save config: " + e.getMessage());
         }
     }
 

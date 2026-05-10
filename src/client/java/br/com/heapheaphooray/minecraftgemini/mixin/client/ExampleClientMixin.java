@@ -1,4 +1,4 @@
-package br.com.HeapHeapHooray.askgemini.mixin.client;
+package br.com.heapheaphooray.minecraftgemini.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;

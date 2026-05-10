@@ -1,12 +1,12 @@
-package br.com.HeapHeapHooray.askgemini;
+package br.com.heapheaphooray.minecraftgemini;
 
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AskGemini implements ModInitializer {
-	public static final String MOD_ID = "askgemini";
+public class MinecraftGemini implements ModInitializer {
+	public static final String MOD_ID = "minecraftgemini";
 
 	// This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.

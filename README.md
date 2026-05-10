@@ -9,7 +9,7 @@ This modified version expands on the original by adding powerful new features, i
 - **👀 Gemini Vision:** Use the new `@GeminiVision` prefix to send a screenshot of your current game view to Gemini along with your question. Ask about your builds, inventory, or what you're looking at!
 - **💬 Global Chat Support:** Gemini can now speak in the normal chat, making it fully usable on multiplayer servers.
 - **📜 Full Chat Context:** Gemini has access to the full chat history since you joined, including messages from other players and system notifications, allowing for context-aware responses.
-- **🕹️ Command Execution (Beta):** Basic support for Gemini to run commands (Note: currently has a known race condition).
+- **🕹️ Command Execution:** Support for Gemini to run commands natively and reason about the outputs.
 
 ## 🚀 Usage
 

@@ -52,10 +52,12 @@ public class AskGeminiClient implements ClientModInitializer {
 	private static final Logger log = LoggerFactory.getLogger(AskGeminiClient.class);
 
 	public static boolean waitingForCommand = false;
+	public static boolean isThinking = false;
 	public static String currentBase64Image = null;
 	public static int sequenceCount = 0;
 
 	public static ReentrantLock mutex = new ReentrantLock();
+	private static ScheduledFuture<?> debouncedFeedTask = null;
 
 	public static void logMessage(Text message) {
 		String plainText = message.getString();
@@ -178,29 +180,13 @@ public class AskGeminiClient implements ClientModInitializer {
 		ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, timestamp) ->
 		{
 			logMessage(message);
-			try {
-				mutex.lock();
-				if (waitingForCommand) {
-					feedGemini();
-				}
-			}
-			finally {
-				mutex.unlock();
-			}
+			triggerFeedGemini();
 		});
 
 		ClientReceiveMessageEvents.GAME.register((message,overlay) ->
 		{
 			logMessage(message);
-			try {
-			mutex.lock();
-			if (waitingForCommand) {
-				feedGemini();
-			}
-		}
-		finally {
-			mutex.unlock();
-		}
+			triggerFeedGemini();
 		});
 		// Register Chat Listener
 		ClientSendMessageEvents.ALLOW_CHAT.register((message) -> {
@@ -237,6 +223,7 @@ public class AskGeminiClient implements ClientModInitializer {
 			try {
 				mutex.lock();
 				waitingForCommand = true;
+				isThinking = false;
 				sequenceCount = -1;
 				if (isVision) {
 					captureScreenshotAsync((base64) -> {
@@ -266,58 +253,109 @@ public class AskGeminiClient implements ClientModInitializer {
 	}
 
 
-	public void feedGemini() {
-		sequenceCount += 1;
-		if(sequenceCount>=10)
-		{
-			waitingForCommand = false;
-			currentBase64Image = null;
-		}
-			MinecraftClient client = MinecraftClient.getInstance();
-			// Schedule delayed "Still thinking..." message
-			ScheduledFuture<?> slowResponseTask = scheduler.schedule(() -> {
-				// Asynchronous task
-				client.execute(() -> {
-					if (client.player != null) {
-							/*client.player.sendMessage(
-									Text.of("§7§o[Gemini] Still thinking..."),
-									false
-							);*/
+	public static void triggerFeedGemini() {
+		try {
+			mutex.lock();
+			if (!waitingForCommand || isThinking) {
+				return;
+			}
+			if (debouncedFeedTask != null && !debouncedFeedTask.isDone()) {
+				debouncedFeedTask.cancel(false);
+			}
+			debouncedFeedTask = scheduler.schedule(() -> {
+				try {
+					mutex.lock();
+					if (waitingForCommand && !isThinking) {
+						feedGemini();
 					}
-				});
-			}, 15, TimeUnit.SECONDS);
+				} finally {
+					mutex.unlock();
+				}
+			}, 500, TimeUnit.MILLISECONDS);
+		} finally {
+			mutex.unlock();
+		}
+	}
 
-			// Call API using the saved Key
-			GeminiIntegration.promptGemini(messages, ConfigManager.getApiKey(), ConfigManager.getModel(), currentBase64Image)
-					.thenAccept(response -> {
-						// Cancel the "Still thinking..." message
-						slowResponseTask.cancel(false);
+	public static void feedGemini() {
+		try {
+			mutex.lock();
+			if (isThinking) return;
+			isThinking = true;
+			sequenceCount += 1;
+			if(sequenceCount>=10)
+			{
+				waitingForCommand = false;
+				isThinking = false;
+				currentBase64Image = null;
+				return;
+			}
+		} finally {
+			mutex.unlock();
+		}
 
-						// Asynchronous task
-						client.execute(() -> {
-							if (client.player == null) return;
+		MinecraftClient client = MinecraftClient.getInstance();
+		// Schedule delayed "Still thinking..." message
+		ScheduledFuture<?> slowResponseTask = scheduler.schedule(() -> {
+			// Asynchronous task
+			client.execute(() -> {
+				if (client.player != null) {
+						/*client.player.sendMessage(
+								Text.of("§7§o[Gemini] Still thinking..."),
+								false
+						);*/
+				}
+			});
+		}, 15, TimeUnit.SECONDS);
 
-							String prefixColor = "§b"; // Blue
-							String textColor = "§f"; // White
+		// Call API using the saved Key
+		GeminiIntegration.promptGemini(messages, ConfigManager.getApiKey(), ConfigManager.getModel(), currentBase64Image)
+				.thenAccept(response -> {
+					// Cancel the "Still thinking..." message
+					slowResponseTask.cancel(false);
 
-							if (response.startsWith("Too many requests")) {
-								prefixColor = "§6"; // Golden
-								textColor = "§e";   // Yellow
-							} else if (response.startsWith("Error parsing AI") ||
-									response.startsWith("Invalid API Key") ||
-									response.startsWith("Gemini unavailable") ||
-									response.startsWith("API Error") ||
-									response.startsWith("Connection Error") ||
-									response.startsWith("Error:") ||
-									response.startsWith("This model requires a Paid API Key")) {
-								prefixColor = "§c"; // Red
-								textColor = "§c"; // Red
+					// Asynchronous task
+					client.execute(() -> {
+						try {
+							mutex.lock();
+							isThinking = false;
+						} finally {
+							mutex.unlock();
+						}
+
+						if (client.player == null) return;
+
+						String prefixColor = "§b"; // Blue
+						String textColor = "§f"; // White
+
+						boolean isError = false;
+						if (response.startsWith("Too many requests")) {
+							prefixColor = "§6"; // Golden
+							textColor = "§e";   // Yellow
+							isError = true;
+						} else if (response.startsWith("Error parsing AI") ||
+								response.startsWith("Invalid API Key") ||
+								response.startsWith("Gemini unavailable") ||
+								response.startsWith("API Error") ||
+								response.startsWith("Connection Error") ||
+								response.startsWith("Error:") ||
+								response.startsWith("This model requires a Paid API Key")) {
+							prefixColor = "§c"; // Red
+							textColor = "§c"; // Red
+							isError = true;
+						}
+
+						if (isError) {
+							try {
+								mutex.lock();
+								waitingForCommand = false;
+							} finally {
+								mutex.unlock();
 							}
+						}
 
-							if("EMPTY".equals(response))
-							{
-								return;
-							}
+						if(!"EMPTY".equals(response))
+						{
 							// Divides the response into lines for better formatting
 							String[] paragraphs = response.split("\n");
 
@@ -349,15 +387,20 @@ public class AskGeminiClient implements ClientModInitializer {
 									}
 								}
 							}
-						});
+						}
+
+						// After processing response, if still waiting for command, trigger another check
+						// This handles cases where commands might not have produced output or we want to continue.
+						triggerFeedGemini();
 					});
-		}
+				});
+	}
 
 
 
 
     // Simple Word Wrap Implementation
-    private List<String> wrapText(String text, int maxChars) {
+    private static List<String> wrapText(String text, int maxChars) {
         List<String> lines = new ArrayList<>();
         String[] words = text.split(" ");
         StringBuilder currentLine = new StringBuilder();

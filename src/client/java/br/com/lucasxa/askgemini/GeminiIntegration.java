@@ -134,37 +134,52 @@ public class GeminiIntegration {
                             String mode = jsonObject.get("mode").getAsString();
 
                             if("FINAL".equals(mode)) {
-                                if(AskGeminiClient.waitingForCommand) {
-                                    AskGeminiClient.waitingForCommand = false;
-                                    AskGeminiClient.currentBase64Image = null;
-                                    return jsonObject.get("message").getAsString();
-                                }
-                                else {
-                                    return "EMPTY";
+                                try {
+                                    AskGeminiClient.mutex.lock();
+                                    if(AskGeminiClient.waitingForCommand) {
+                                        AskGeminiClient.waitingForCommand = false;
+                                        AskGeminiClient.currentBase64Image = null;
+                                        return jsonObject.get("message").getAsString();
+                                    }
+                                    else {
+                                        return "EMPTY";
+                                    }
+                                } finally {
+                                    AskGeminiClient.mutex.unlock();
                                 }
                             }
-                            else if("INTERMEDIATE".equals(mode) && AskGeminiClient.waitingForCommand) {
+                            else if("INTERMEDIATE".equals(mode)) {
+                                boolean shouldProcess = false;
+                                try {
+                                    AskGeminiClient.mutex.lock();
+                                    if (AskGeminiClient.waitingForCommand) {
+                                        shouldProcess = true;
+                                    }
+                                } finally {
+                                    AskGeminiClient.mutex.unlock();
+                                }
 
-                                JsonArray commandsArray = jsonObject.getAsJsonArray("commands");
+                                if (shouldProcess) {
+                                    JsonArray commandsArray = jsonObject.getAsJsonArray("commands");
+                                    List<String> commands = new ArrayList<>();
 
-                                List<String> commands = new ArrayList<>();
-
-                                for (JsonElement element : commandsArray) {
-                                    String command = element.getAsString();
-
-                                    if (command.startsWith("/")) {
-                                        command = command.substring(1);
+                                    for (JsonElement element : commandsArray) {
+                                        String command = element.getAsString();
+                                        if (command.startsWith("/")) {
+                                            command = command.substring(1);
+                                        }
+                                        commands.add(command);
                                     }
 
-                                    commands.add(command);
+                                    MinecraftClient clientInstance = MinecraftClient.getInstance();
+                                    clientInstance.execute(() -> {
+                                        for (String command : commands) {
+                                            clientInstance.getNetworkHandler().sendChatCommand(command);
+                                        }
+                                    });
+
+                                    return jsonObject.get("message").getAsString();
                                 }
-
-
-                                for (String command : commands) {
-                                    MinecraftClient.getInstance().getNetworkHandler().sendChatCommand(command);
-                                }
-
-                                return jsonObject.get("message").getAsString();
                             }
                             return "EMPTY";
                         } catch (Exception e) {

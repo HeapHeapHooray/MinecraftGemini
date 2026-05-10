@@ -1,6 +1,6 @@
 # 💎 MinecraftGemini
 
-A forked and enhanced version of the [MinecraftGemini](https://github.com/Lucas-X-A/MinecraftGemini_Minecraft_Mod) mod, bringing the power of Google's Gemini AI directly into your Minecraft chat!
+A forked and enhanced version of the [AskGemini](https://github.com/Lucas-X-A/AskGemini_Minecraft_Mod) mod, bringing the power of Google's Gemini AI directly into your Minecraft chat!
 
 This modified version expands on the original by adding powerful new features, including the ability for Gemini to "see" your game and interact more naturally with the server.
 

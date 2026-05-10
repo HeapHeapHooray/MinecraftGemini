@@ -25,6 +25,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.ScreenshotRecorder;
 import java.io.IOException;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,18 +75,22 @@ public class AskGeminiClient implements ClientModInitializer {
 
 	}
 
-	public static String captureScreenshot() {
+	public static void captureScreenshotAsync(Consumer<String> callback) {
 		MinecraftClient client = MinecraftClient.getInstance();
-		NativeImage image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer());
-		try {
-			byte[] bytes = image.getBytes();
-			return Base64.getEncoder().encodeToString(bytes);
-		} catch (IOException e) {
-			log.error("Failed to capture screenshot", e);
-			return null;
-		} finally {
-			image.close();
-		}
+		ScreenshotRecorder.takeScreenshot(client.getFramebuffer(), (image) -> {
+			try {
+				Path tempPath = Files.createTempFile("gemini_screenshot", ".png");
+				image.writeTo(tempPath);
+				byte[] bytes = Files.readAllBytes(tempPath);
+				Files.delete(tempPath);
+				callback.accept(Base64.getEncoder().encodeToString(bytes));
+			} catch (IOException e) {
+				log.error("Failed to capture screenshot", e);
+				callback.accept(null);
+			} finally {
+				image.close();
+			}
+		});
 	}
 	@Override
 	public void onInitializeClient() {
@@ -231,11 +239,19 @@ public class AskGeminiClient implements ClientModInitializer {
 				waitingForCommand = true;
 				sequenceCount = -1;
 				if (isVision) {
-					currentBase64Image = captureScreenshot();
+					captureScreenshotAsync((base64) -> {
+						try {
+							mutex.lock();
+							currentBase64Image = base64;
+							feedGemini();
+						} finally {
+							mutex.unlock();
+						}
+					});
 				} else {
 					currentBase64Image = null;
+					feedGemini();
 				}
-				feedGemini();
 			}
 			finally {
 				mutex.unlock();

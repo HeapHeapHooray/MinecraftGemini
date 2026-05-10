@@ -22,6 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.util.ScreenshotRecorder;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +48,7 @@ public class AskGeminiClient implements ClientModInitializer {
 	private static final Logger log = LoggerFactory.getLogger(AskGeminiClient.class);
 
 	public static boolean waitingForCommand = false;
+	public static String currentBase64Image = null;
 	public static int sequenceCount = 0;
 
 	public static ReentrantLock mutex = new ReentrantLock();
@@ -64,6 +69,20 @@ public class AskGeminiClient implements ClientModInitializer {
 		}
 
 
+	}
+
+	public static String captureScreenshot() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		NativeImage image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer());
+		try {
+			byte[] bytes = image.getBytes();
+			return Base64.getEncoder().encodeToString(bytes);
+		} catch (IOException e) {
+			log.error("Failed to capture screenshot", e);
+			return null;
+		} finally {
+			image.close();
+		}
 	}
 	@Override
 	public void onInitializeClient() {
@@ -137,10 +156,12 @@ public class AskGeminiClient implements ClientModInitializer {
 								source.sendFeedback(Text.of("§e/gemini model <name> §7- Switch AI Model."));
 								source.sendFeedback(Text.of("§e/gemini help §7- Show this command list."));
 								source.sendFeedback(Text.of("§bUsage: §fSimply type §b@gemini §e<your question> §fin chat."));
+								source.sendFeedback(Text.of("§bVision: §fType §b@GeminiVision §e<your question> §fto include a screenshot."));
 								source.sendFeedback(Text.of("§b§m                                "));
 								return 1;
 							})
-					).then(ClientCommandManager.literal("visible").executes(command -> { selfMessage(Text.of("Gemini messages are now visible !"),false); visible = true; return 1;}))
+					)
+.then(ClientCommandManager.literal("visible").executes(command -> { selfMessage(Text.of("Gemini messages are now visible !"),false); visible = true; return 1;}))
 					.then(ClientCommandManager.literal("hidden").executes(command -> { selfMessage(Text.of("Gemini messages are now hidden !"),false); visible = false; return 1;}))
 			);
 		});
@@ -175,7 +196,8 @@ public class AskGeminiClient implements ClientModInitializer {
 		});
 		// Register Chat Listener
 		ClientSendMessageEvents.ALLOW_CHAT.register((message) -> {
-			if (message.startsWith("@Gemini ") || message.startsWith("@gemini ") || message.startsWith("@GEMINI ")) {
+			boolean isVision = message.startsWith("@GeminiVision ") || message.startsWith("@geminivision ") || message.startsWith("@GEMINIVISION ");
+			if (isVision || message.startsWith("@Gemini ") || message.startsWith("@gemini ") || message.startsWith("@GEMINI ")) {
 			MinecraftClient client = MinecraftClient.getInstance();
 
 			// Check if API Key exists
@@ -192,8 +214,9 @@ public class AskGeminiClient implements ClientModInitializer {
 			if (client.player != null) {
 				// Echo user's question in chat
 				String playerName = client.player.getName().getString();
-				String rawPrefix = message.substring(0, 7);
-				String content = message.substring(7);
+				int prefixLength = isVision ? 13 : 7;
+				String rawPrefix = message.substring(0, prefixLength);
+				String content = message.substring(prefixLength);
 				Text userChatEntry = Text.of("§b" + rawPrefix + "§f" + content);
 				selfMessage(userChatEntry,true);
 
@@ -201,12 +224,17 @@ public class AskGeminiClient implements ClientModInitializer {
 				selfMessage(Text.of("§7§o[Gemini] Thinking..."), false);
 			}
 
-			String question = message.substring(8);
+			String question = message.substring(isVision ? 14 : 8);
 
 			try {
 				mutex.lock();
 				waitingForCommand = true;
 				sequenceCount = -1;
+				if (isVision) {
+					currentBase64Image = captureScreenshot();
+				} else {
+					currentBase64Image = null;
+				}
 				feedGemini();
 			}
 			finally {
@@ -227,6 +255,7 @@ public class AskGeminiClient implements ClientModInitializer {
 		if(sequenceCount>=10)
 		{
 			waitingForCommand = false;
+			currentBase64Image = null;
 		}
 			MinecraftClient client = MinecraftClient.getInstance();
 			// Schedule delayed "Still thinking..." message
@@ -243,7 +272,7 @@ public class AskGeminiClient implements ClientModInitializer {
 			}, 15, TimeUnit.SECONDS);
 
 			// Call API using the saved Key
-			GeminiIntegration.promptGemini(messages, ConfigManager.getApiKey(), ConfigManager.getModel())
+			GeminiIntegration.promptGemini(messages, ConfigManager.getApiKey(), ConfigManager.getModel(), currentBase64Image)
 					.thenAccept(response -> {
 						// Cancel the "Still thinking..." message
 						slowResponseTask.cancel(false);

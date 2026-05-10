@@ -29,7 +29,7 @@ public class GeminiIntegration {
     private static final int MAX_HISTORY_SIZE = 20;
 
 
-    public static CompletableFuture<String> promptGemini(List<String> messages,String apiKey, String modelId) {
+    public static CompletableFuture<String> promptGemini(List<String> messages,String apiKey, String modelId, String base64Image) {
 
         // Dynamic URL based on the model selected
         String dynamicUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + modelId + ":generateContent";
@@ -55,8 +55,13 @@ public class GeminiIntegration {
         // Contents (History)
         JsonArray contents = new JsonArray();
         synchronized (messages) {
-            for (String message : messages) {
-                contents.add(createMessageNoRole(message));
+            for (int i = 0; i < messages.size(); i++) {
+                String message = messages.get(i);
+                if (i == messages.size() - 1 && base64Image != null) {
+                    contents.add(createMessageNoRole(message, base64Image));
+                } else {
+                    contents.add(createMessageNoRole(message, null));
+                }
             }
         }
 
@@ -131,6 +136,7 @@ public class GeminiIntegration {
                             if("FINAL".equals(mode)) {
                                 if(AskGeminiClient.waitingForCommand) {
                                     AskGeminiClient.waitingForCommand = false;
+                                    AskGeminiClient.currentBase64Image = null;
                                     return jsonObject.get("message").getAsString();
                                 }
                                 else {
@@ -223,13 +229,23 @@ public class GeminiIntegration {
     }
 
 
-    private static JsonObject createMessageNoRole(String text) {
+    private static JsonObject createMessageNoRole(String text, String base64Image) {
         text = text + "\n";
         JsonObject message = new JsonObject();
         JsonArray parts = new JsonArray();
         JsonObject part = new JsonObject();
         part.addProperty("text", text);
         parts.add(part);
+
+        if (base64Image != null && !base64Image.isEmpty()) {
+            JsonObject imagePart = new JsonObject();
+            JsonObject inlineData = new JsonObject();
+            inlineData.addProperty("mime_type", "image/png");
+            inlineData.addProperty("data", base64Image);
+            imagePart.add("inline_data", inlineData);
+            parts.add(imagePart);
+        }
+
         message.add("parts", parts);
         return message;
     }

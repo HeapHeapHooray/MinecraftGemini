@@ -17,10 +17,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"br.com.lucasxa.askgemini.AskGemini"
+			"br.com.HeapHeapHooray.askgemini.AskGemini"
 		],
 		"client": [
-			"br.com.lucasxa.askgemini.AskGeminiClient"
+			"br.com.HeapHeapHooray.askgemini.AskGeminiClient"
 		]
 	},
 	"mixins": [

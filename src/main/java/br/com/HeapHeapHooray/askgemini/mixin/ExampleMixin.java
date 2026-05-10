@@ -1,4 +1,4 @@
-package br.com.lucasxa.askgemini.mixin;
+package br.com.HeapHeapHooray.askgemini.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,4 +1,4 @@
-package br.com.lucasxa.askgemini;
+package br.com.HeapHeapHooray.askgemini;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;

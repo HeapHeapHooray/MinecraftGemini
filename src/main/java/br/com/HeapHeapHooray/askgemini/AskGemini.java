@@ -1,4 +1,4 @@
-package br.com.lucasxa.askgemini;
+package br.com.HeapHeapHooray.askgemini;
 
 import net.fabricmc.api.ModInitializer;
 

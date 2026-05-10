@@ -1,4 +1,4 @@
-package br.com.lucasxa.askgemini;
+package br.com.HeapHeapHooray.askgemini;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

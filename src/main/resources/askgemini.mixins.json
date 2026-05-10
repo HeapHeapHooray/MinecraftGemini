@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "br.com.lucasxa.askgemini.mixin",
+	"package": "br.com.HeapHeapHooray.askgemini.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin"

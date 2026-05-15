@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "br.com.heapheaphooray.minecraftgemini.mixin.client",
+	"package": "com.heapheaphooray.minecraftgemini.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"ExampleClientMixin"

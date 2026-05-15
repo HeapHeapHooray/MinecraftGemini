@@ -17,10 +17,10 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"br.com.heapheaphooray.minecraftgemini.MinecraftGemini"
+			"com.heapheaphooray.minecraftgemini.MinecraftGemini"
 		],
 		"client": [
-			"br.com.heapheaphooray.minecraftgemini.MinecraftGeminiClient"
+			"com.heapheaphooray.minecraftgemini.MinecraftGeminiClient"
 		]
 	},
 	"mixins": [

@@ -1,4 +1,4 @@
-package br.com.heapheaphooray.minecraftgemini.mixin;
+package com.heapheaphooray.minecraftgemini.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

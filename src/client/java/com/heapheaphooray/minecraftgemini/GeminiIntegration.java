@@ -1,4 +1,4 @@
-package br.com.heapheaphooray.minecraftgemini;
+package com.heapheaphooray.minecraftgemini;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

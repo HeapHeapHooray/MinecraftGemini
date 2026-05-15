@@ -1,4 +1,4 @@
-package br.com.heapheaphooray.minecraftgemini;
+package com.heapheaphooray.minecraftgemini;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;

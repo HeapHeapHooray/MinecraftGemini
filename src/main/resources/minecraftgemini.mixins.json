@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "br.com.heapheaphooray.minecraftgemini.mixin",
+	"package": "com.heapheaphooray.minecraftgemini.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin"
